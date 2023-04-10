@@ -170,27 +170,32 @@ make_tile <- function(data, x, y, zoom, path, style = list(), cache = tempdir())
 #' @param path service end-point name
 #' @param dir service directory
 create_service <- function(data, path, dir) {
-  dir <- normalizePath(dir)
-  dir.create(path)
+  dir.create(path, recursive = TRUE)
 
-  st_write(data, sprintf("%s/data.gpkg", path), append = FALSE)
+  st_write(
+    data |> st_transform(4326),
+    sprintf("%s/data.gpkg", path),
+    append = FALSE
+  )
 
   service <- sprintf(
     'library(sf)
+    |
+    |sf::sf_use_s2(FALSE)
     |
     |data <- st_read("data.gpkg")
     |
     |#* @get /%s/<z:int>/<x:int>/<y:int>
     |#* @serializer contentType list(type="image/png")
     |function(z, x, y) {
-    |  f <- make_tile(data, x, y, z, "world", cache = "%s/cache")
+    |  f <- make_tile(data, x, y, z, %s, cache = "cache")
     |  readBin(f, "raw", n = file.info(f)$size)
     |}
     |
     |# service <- plumber::pr("service.R")
     |# pr_run(service)
     ',
-    path, dir
+    path, path
   )
 
   writeLines(gsub("( )+\\|", "", service), sprintf("%s/service.R", dir))
