@@ -123,7 +123,7 @@ blank <- function() {
 #' @param cache directory for cache
 #' @return path to tile
 make_tile <- function(data, x, y, zoom, path, style = list(), cache = tempdir()) {
-  root <- sprintf("%s/%s/%s/%s", normalizePath(cache), path, zoom, x)
+  root <- sprintf("%s/%s/%s/%s", cache, path, zoom, x)
   if (!createifnot(root)) stop("Could not create folder.")
 
   f <- sprintf("%s/%s.png", root, y)
