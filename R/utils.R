@@ -188,7 +188,7 @@ create_service <- function(data, path, dir) {
     |#* @get /%s/<z:int>/<x:int>/<y:int>
     |#* @serializer contentType list(type="image/png")
     |function(z, x, y) {
-    |  f <- make_tile(data, x, y, z, %s, cache = "cache")
+    |  f <- make_tile(data, x, y, z, "%s", cache = "cache")
     |  readBin(f, "raw", n = file.info(f)$size)
     |}
     |
