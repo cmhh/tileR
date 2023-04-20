@@ -4,7 +4,7 @@
 \alias{make_tile}
 \title{create tile image}
 \usage{
-make_tile(data, x, y, zoom, path, style = list(), cache = tempdir())
+make_tile(data, x, y, zoom, path, options = plotoptions(), cache = tempdir())
 }
 \arguments{
 \item{data}{an sf object}
@@ -17,9 +17,9 @@ make_tile(data, x, y, zoom, path, style = list(), cache = tempdir())
 
 \item{path}{name of tileset folder}
 
-\item{style}{Not implemented.  Intended to support basic styling.}
-
 \item{cache}{directory for cache}
+
+\item{style}{Not implemented.  Intended to support basic styling.}
 }
 \value{
 path to tile

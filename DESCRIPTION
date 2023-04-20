@@ -1,11 +1,11 @@
 Package: tileR
 Type: Package
 Title: Make a basic slippy tile service.
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("Chris", "Hansen", email = "cmhhansen@outlook.com", role = c("aut", "cre"))
 Maintainer: Chris Hansen <cmhhansen@outlook.com>
 Description: Make a basic slipply tile service from an sf object.  Mostly for local testing with leaflet.Depends: 
-  R (>= 4.2.3),
+  R (>= 3.6.3),
   sf (>= 1.0-12),
   plumber (>= 1.2.1)
 License: MPL-2.0

@@ -110,6 +110,53 @@ blank <- function() {
   )
 }
 
+#' Plotting options
+#'
+#' @export
+#'
+#' @param pal function which returns fill color
+#' @param value column holding value for pal
+#' @param col fill color, not used if `pal` and `value` provided
+#' @param border border color
+#' @param lwd line width
+#' @param lty line type
+plotoptions <- function(...) {
+  args <- list(...)
+
+  opts <- list(
+    col = NA, lwd = 1, lty = 1, border = "#000000"
+  )
+
+  for (op in names(args)) {
+    opts[[op]] <- args[[op]]
+  }
+
+  opts
+}
+
+#' styled plot
+splot <- function(x, options, add = TRUE) {
+  fill <-
+    if (!is.null(options$pal) & !is.null(options$value)) {
+      sapply(
+        x[, options$value] |> st_drop_geometry() |> unlist(use.names = FALSE),
+        options$pal,
+        USE.NAMES = FALSE
+      )
+    } else if (!is.null(options$col)) {
+      options$col
+    } else NA
+
+  plot(
+    st_geometry(x) |> st_transform(3857),
+    col = fill,
+    border = options$border,
+    lwd = options$lwd,
+    lty = options$lty,
+    add = add
+  )
+}
+
 #' create tile image
 #'
 #' @export
@@ -122,7 +169,7 @@ blank <- function() {
 #' @param style Not implemented.  Intended to support basic styling.
 #' @param cache directory for cache
 #' @return path to tile
-make_tile <- function(data, x, y, zoom, path, style = list(), cache = tempdir()) {
+make_tile <- function(data, x, y, zoom, path, options = plotoptions(), cache = tempdir()) {
   root <- sprintf("%s/%s/%s/%s", cache, path, zoom, x)
   if (!createifnot(root)) stop("Could not create folder.")
 
@@ -131,7 +178,6 @@ make_tile <- function(data, x, y, zoom, path, style = list(), cache = tempdir())
   if (!file.exists(f)) {
     bb0 <- bbox(x, y, zoom)
     bb1 <- buffer(bb0, pixels = 2)
-
     suppressWarnings(suppressMessages(clipped <- st_intersection(data, bb1)))
     border <- st_coordinates(bb0 |> st_transform(3857))[, c(1,2)]
 
@@ -149,8 +195,8 @@ make_tile <- function(data, x, y, zoom, path, style = list(), cache = tempdir())
         xlab = NA, ylab = NA
       )
 
-      plot(
-        st_geometry(clipped) |> st_transform(3857), add = TRUE
+      splot(
+        clipped, options, add = TRUE
       )
     }
 
@@ -169,7 +215,7 @@ make_tile <- function(data, x, y, zoom, path, style = list(), cache = tempdir())
 #' @param data an sf object
 #' @param path service end-point name
 #' @param dir service directory
-create_service <- function(data, path, dir) {
+create_service <- function(data, path, dir, options = plotoptions()) {
   dir.create(path, recursive = TRUE)
 
   st_write(
@@ -178,17 +224,20 @@ create_service <- function(data, path, dir) {
     append = FALSE
   )
 
+  saveRDS(options, sprintf("%s/options.rds", path))
+
   service <- sprintf(
     'library(sf)
     |
     |sf::sf_use_s2(FALSE)
     |
     |data <- st_read("data.gpkg")
+    |options <- readRDS("options.rds")
     |
     |#* @get /%s/<z:int>/<x:int>/<y:int>
     |#* @serializer contentType list(type="image/png")
     |function(z, x, y) {
-    |  f <- make_tile(data, x, y, z, "%s", cache = "cache")
+    |  f <- make_tile(data, x, y, z, "%s", options, cache = "cache")
     |  readBin(f, "raw", n = file.info(f)$size)
     |}
     |

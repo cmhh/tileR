@@ -4,7 +4,7 @@
 \alias{create_service}
 \title{Create a service.}
 \usage{
-create_service(data, path, dir)
+create_service(data, path, dir, options = plotoptions())
 }
 \arguments{
 \item{data}{an sf object}

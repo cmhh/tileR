@@ -11,17 +11,29 @@ library(sf)
 library(tileR)
 library(plumber)
 
-rc <- st_read("world.gpkg")
+world <- st_read(system.file("examples/world/data.gpkg", package = "tileR"))
 
-create_service(rc, "world", "world")
+# optonal--add some basic styling
+value <- world[, "name"] |> st_drop_geometry() |> unlist(use.names = FALSE)
+cols  <- rainbow(10)[sample(10, nrow(world), replace = TRUE)]
+
+pal <- function(x) {
+ cols[which(x == value)]
+}
+
+options <- plotoptions(
+  pal = pal, value = "name"
+)
+
+create_service(world, "world", "world", options)
 
 service <- plumber::pr("world/service.R")
 pr_run(service)
 ```
 
-This will start a service on a random port, and the service can be used in `leaflet`'s `addTiles` function.  For example, if the port is 9772, the URL template would be:
+This will start a service on a random port, and the service can be used in `leaflet`'s `addTiles` function.  For example, if the port is 5086, the URL template would be:
 
-    http://localhost:9772/world/{z}/{x}/{y}
+    http://localhost:5086/world/{z}/{x}/{y}
     
 We could display this in a leaflet map (in a different session) by running:
 
@@ -30,10 +42,8 @@ library(leaflet)
 
 leaflet() |> 
   addTiles() |> 
-  addTiles(urlTemplate = "http://localhost:9772/world/{z}/{x}/{y}")
+  addTiles(urlTemplate = "http://localhost:5086/world/{z}/{x}/{y}")
 
 ```
 
 ![](media/example.webp)
-
-It's pretty under-cooked for now--just a rough PoC I put together one afternoon.  But I'll probably add some basic styling functionality soon, like the ability to fill polygons etc.
